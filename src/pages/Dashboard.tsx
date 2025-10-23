@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Activity, FileText, ImageIcon, LogOut } from 'lucide-react';
+import { Activity, FileText, ImageIcon, LogOut, Shield } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -21,6 +25,16 @@ export default function Dashboard() {
       navigate('/auth');
     } else {
       setUser(user);
+      
+      // Check if user is admin
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      
+      setIsAdmin(!!roles);
     }
   };
 
@@ -28,7 +42,7 @@ export default function Dashboard() {
     await supabase.auth.signOut();
     navigate('/auth');
     toast({
-      title: "Signed out",
+      title: t('common.success'),
       description: "You have been successfully signed out",
     });
   };
@@ -47,10 +61,13 @@ export default function Dashboard() {
               <p className="text-sm text-muted-foreground">{user?.email}</p>
             </div>
           </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <Button variant="outline" onClick={handleSignOut}>
+              <LogOut className="w-4 h-4 mr-2" />
+              {t('common.signOut')}
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -58,11 +75,32 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="space-y-8">
           <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold">Welcome to Your Dashboard</h2>
+            <h2 className="text-3xl font-bold">{t('dashboard.title')}</h2>
             <p className="text-muted-foreground">
-              Choose a feature to get started with AI-powered medical assistance
+              {t('dashboard.subtitle')}
             </p>
           </div>
+          
+          {isAdmin && (
+            <Card className="bg-gradient-card border-primary/20">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Shield className="w-8 h-8 text-primary" />
+                    <div>
+                      <h3 className="text-lg font-bold">Admin Panel</h3>
+                      <p className="text-sm text-muted-foreground">
+                        View hospital statistics and manage system
+                      </p>
+                    </div>
+                  </div>
+                  <Button onClick={() => navigate('/admin')}>
+                    {t('dashboard.admin.button')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="grid md:grid-cols-2 gap-6">
             {/* Consultation Card */}
@@ -74,28 +112,28 @@ export default function Dashboard() {
                 <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <Activity className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle>Patient Consultation</CardTitle>
+                <CardTitle>{t('dashboard.consultation.title')}</CardTitle>
                 <CardDescription>
-                  Record patient symptoms and receive AI-powered diagnosis with confidence scoring
+                  {t('dashboard.consultation.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <span className="text-primary">•</span>
-                    Voice-to-text transcription
+                    {t('dashboard.consultation.features.voice')}
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary">•</span>
-                    AI symptom analysis
+                    {t('dashboard.consultation.features.analysis')}
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary">•</span>
-                    Medical test recommendations
+                    {t('dashboard.consultation.features.tests')}
                   </li>
                 </ul>
                 <Button className="w-full mt-4">
-                  Start Consultation
+                  {t('dashboard.consultation.button')}
                 </Button>
               </CardContent>
             </Card>
@@ -109,28 +147,28 @@ export default function Dashboard() {
                 <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <ImageIcon className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle>X-Ray Analysis</CardTitle>
+                <CardTitle>{t('dashboard.xray.title')}</CardTitle>
                 <CardDescription>
-                  Upload medical imaging for AI-powered anomaly detection and highlighting
+                  {t('dashboard.xray.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <span className="text-secondary">•</span>
-                    Upload X-ray images
+                    {t('dashboard.xray.features.upload')}
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-secondary">•</span>
-                    AI anomaly detection
+                    {t('dashboard.xray.features.detection')}
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-secondary">•</span>
-                    Visual highlighting of concerns
+                    {t('dashboard.xray.features.highlighting')}
                   </li>
                 </ul>
                 <Button variant="secondary" className="w-full mt-4">
-                  Analyze X-Ray
+                  {t('dashboard.xray.button')}
                 </Button>
               </CardContent>
             </Card>
@@ -141,12 +179,12 @@ export default function Dashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-primary" />
-                About This Platform
+                {t('dashboard.about.title')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <p>
-                This AI Health Assistant uses advanced machine learning models to:
+                {t('dashboard.about.description')}
               </p>
               <ul className="space-y-1 ml-4">
                 <li>• Transcribe patient consultations in real-time</li>
@@ -156,9 +194,7 @@ export default function Dashboard() {
                 <li>• Generate comprehensive reports</li>
               </ul>
               <p className="text-muted-foreground mt-4">
-                <strong>Important:</strong> This system is designed to assist healthcare professionals 
-                and should not replace professional medical judgment. Always consult with qualified 
-                healthcare providers for final diagnosis and treatment decisions.
+                <strong>Important:</strong> {t('dashboard.about.disclaimer')}
               </p>
             </CardContent>
           </Card>

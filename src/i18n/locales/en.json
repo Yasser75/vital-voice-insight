@@ -1,0 +1,111 @@
+{
+  "common": {
+    "signOut": "Sign Out",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "submit": "Submit"
+  },
+  "dashboard": {
+    "title": "Welcome to Your Dashboard",
+    "subtitle": "Choose a feature to get started with AI-powered medical assistance",
+    "consultation": {
+      "title": "Patient Consultation",
+      "description": "Record patient symptoms and receive AI-powered diagnosis with confidence scoring",
+      "features": {
+        "voice": "Voice-to-text transcription",
+        "analysis": "AI symptom analysis",
+        "tests": "Medical test recommendations"
+      },
+      "button": "Start Consultation"
+    },
+    "xray": {
+      "title": "X-Ray Analysis",
+      "description": "Upload medical imaging for AI-powered anomaly detection and highlighting",
+      "features": {
+        "upload": "Upload X-ray images",
+        "detection": "AI anomaly detection",
+        "highlighting": "Visual highlighting of concerns"
+      },
+      "button": "Analyze X-Ray"
+    },
+    "admin": {
+      "button": "Admin Dashboard"
+    },
+    "about": {
+      "title": "About This Platform",
+      "description": "This AI Health Assistant uses advanced machine learning models to:",
+      "features": [
+        "Transcribe patient consultations in real-time",
+        "Provide intelligent diagnosis suggestions based on symptoms",
+        "Recommend appropriate medical tests",
+        "Analyze medical imaging for anomalies",
+        "Generate comprehensive reports"
+      ],
+      "disclaimer": "This system is designed to assist healthcare professionals and should not replace professional medical judgment. Always consult with qualified healthcare providers for final diagnosis and treatment decisions."
+    }
+  },
+  "consultation": {
+    "title": "Patient Consultation",
+    "recordingButton": "Start Recording",
+    "stopButton": "Stop Recording",
+    "analyzeButton": "Analyze Symptoms",
+    "scheduleButton": "Schedule Test",
+    "transcript": "Transcript",
+    "diagnosis": "AI Diagnosis",
+    "confidence": "Confidence",
+    "recommendations": "Recommended Medical Tests",
+    "patientInfo": "Patient Information",
+    "patientName": "Patient Name",
+    "patientEmail": "Patient Email",
+    "selectPatient": "Select Patient"
+  },
+  "testScheduling": {
+    "title": "Schedule Medical Test",
+    "testType": "Test Type",
+    "testName": "Test Name",
+    "department": "Department",
+    "date": "Scheduled Date",
+    "time": "Scheduled Time",
+    "priority": "Priority",
+    "notes": "Notes",
+    "priorities": {
+      "normal": "Normal",
+      "urgent": "Urgent",
+      "emergency": "Emergency"
+    },
+    "testTypes": {
+      "blood": "Blood Test",
+      "urine": "Urine Test",
+      "xray": "X-Ray",
+      "ct": "CT Scan",
+      "mri": "MRI",
+      "ultrasound": "Ultrasound",
+      "ecg": "ECG",
+      "other": "Other"
+    },
+    "departments": {
+      "lab": "Laboratory",
+      "radiology": "Radiology",
+      "cardiology": "Cardiology",
+      "pathology": "Pathology"
+    }
+  },
+  "admin": {
+    "title": "Hospital Management Dashboard",
+    "stats": {
+      "totalConsultations": "Total Consultations",
+      "todayConsultations": "Today's Consultations",
+      "totalTests": "Total Tests",
+      "pendingTests": "Pending Tests",
+      "completedTests": "Completed Tests",
+      "totalPatients": "Total Patients"
+    },
+    "recentActivity": "Recent Activity",
+    "unauthorized": "Unauthorized access. Admin privileges required."
+  }
+}
