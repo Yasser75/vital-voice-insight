@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Activity, LogOut, FileText, TestTube, Calendar, Clock } from 'lucide-react';
+import { Activity, LogOut, FileText, TestTube, Calendar, Clock, AlertCircle, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +20,9 @@ interface TestResult {
   id: string;
   created_at: string;
   ai_analysis: string;
+  ai_remarks: string;
+  result_file_url: string;
+  anomalies_detected: any;
   test_id: string;
   medical_tests: {
     test_name: string;
@@ -258,28 +261,127 @@ export default function PatientDashboard() {
                   </CardContent>
                 </Card>
               ) : (
-                testResults.map((result) => (
-                  <Card key={result.id}>
-                    <CardHeader>
-                      <CardTitle>
-                        {result.medical_tests?.test_name || t('patient.testResult')}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(result.created_at).toLocaleDateString()}
-                        </p>
-                        {result.ai_analysis && (
-                          <>
-                            <p className="font-semibold mt-4">{t('patient.analysis')}:</p>
-                            <p className="text-muted-foreground">{result.ai_analysis}</p>
-                          </>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                testResults.map((result) => {
+                  const isXRay = result.medical_tests?.test_type?.toLowerCase().includes('x-ray') || 
+                                 result.medical_tests?.test_type?.toLowerCase().includes('xray');
+                  const anomalies = result.anomalies_detected;
+
+                  return (
+                    <Card key={result.id}>
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle>
+                              {result.medical_tests?.test_name || t('patient.testResult')}
+                            </CardTitle>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {new Date(result.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          {isXRay && (
+                            <Badge variant="secondary" className="flex items-center gap-1">
+                              <ImageIcon className="w-3 h-3" />
+                              X-Ray
+                            </Badge>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {/* X-Ray Image with Highlighted Abnormalities */}
+                          {isXRay && result.result_file_url && (
+                            <div className="space-y-3">
+                              <div className="relative rounded-lg overflow-hidden border border-border bg-black">
+                                <img
+                                  src={result.result_file_url}
+                                  alt="X-ray result"
+                                  className="w-full h-auto max-h-96 object-contain"
+                                />
+                                
+                                {anomalies && Array.isArray(anomalies) && anomalies.map((anomaly: any, index: number) => (
+                                  <div
+                                    key={index}
+                                    className="absolute border-2 border-red-500 bg-red-500/20 rounded"
+                                    style={{
+                                      left: `${anomaly.coordinates?.x || 0}%`,
+                                      top: `${anomaly.coordinates?.y || 0}%`,
+                                      width: `${anomaly.coordinates?.width || 10}%`,
+                                      height: `${anomaly.coordinates?.height || 10}%`,
+                                    }}
+                                  >
+                                    <div className="absolute -top-6 left-0 bg-red-500 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                                      {anomaly.description}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* AI Detected Anomalies */}
+                              {anomalies && Array.isArray(anomalies) && anomalies.length > 0 && (
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <AlertCircle className="w-4 h-4 text-destructive" />
+                                    <h3 className="font-semibold text-sm uppercase tracking-wide">
+                                      Detected Abnormalities
+                                    </h3>
+                                  </div>
+                                  {anomalies.map((anomaly: any, index: number) => (
+                                    <div
+                                      key={index}
+                                      className="p-3 bg-accent rounded-lg border border-border space-y-2"
+                                    >
+                                      <div className="flex items-start justify-between">
+                                        <p className="text-sm font-medium">{anomaly.description}</p>
+                                        <Badge
+                                          variant={
+                                            anomaly.severity === 'high'
+                                              ? 'destructive'
+                                              : anomaly.severity === 'medium'
+                                              ? 'default'
+                                              : 'secondary'
+                                          }
+                                        >
+                                          {anomaly.severity}
+                                        </Badge>
+                                      </div>
+                                      <p className="text-xs text-muted-foreground">
+                                        Location: {anomaly.location}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* AI Analysis / Diagnosis */}
+                          {result.ai_analysis && (
+                            <div className="space-y-2">
+                              <p className="font-semibold text-sm uppercase tracking-wide text-primary">
+                                AI Diagnosis
+                              </p>
+                              <p className="text-sm text-foreground leading-relaxed bg-accent/50 p-3 rounded-lg">
+                                {result.ai_analysis}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* AI Recommendations */}
+                          {result.ai_remarks && (
+                            <div className="space-y-2">
+                              <p className="font-semibold text-sm uppercase tracking-wide text-secondary">
+                                Recommendations
+                              </p>
+                              <p className="text-sm text-foreground leading-relaxed bg-secondary/10 p-3 rounded-lg">
+                                {result.ai_remarks}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })
               )}
             </div>
           </div>
