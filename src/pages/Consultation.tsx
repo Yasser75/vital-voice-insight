@@ -4,8 +4,9 @@ import { VoiceRecorder } from '@/components/VoiceRecorder';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, FileText, Activity } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { Textarea } from '@/components/ui/textarea';
+import { Loader2, FileText, Activity, Edit2, Save, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import TestScheduleDialog from '@/components/TestScheduleDialog';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -14,7 +15,10 @@ export default function Consultation() {
   const { t } = useTranslation();
   const [transcript, setTranscript] = useState('');
   const [diagnosis, setDiagnosis] = useState('');
+  const [editedDiagnosis, setEditedDiagnosis] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [confidence, setConfidence] = useState<number | null>(null);
   const [consultationId, setConsultationId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -91,6 +95,7 @@ export default function Consultation() {
 
       setConsultationId(consultation.id);
       setDiagnosis(data.diagnosis);
+      setEditedDiagnosis(data.diagnosis);
       setConfidence(data.confidence);
       
       toast({
@@ -106,6 +111,47 @@ export default function Consultation() {
       });
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const handleEditDiagnosis = () => {
+    setEditedDiagnosis(diagnosis);
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditedDiagnosis(diagnosis);
+    setIsEditing(false);
+  };
+
+  const handleSaveDiagnosis = async () => {
+    if (!consultationId) return;
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('consultations')
+        .update({ diagnosis: editedDiagnosis })
+        .eq('id', consultationId);
+
+      if (error) throw error;
+
+      setDiagnosis(editedDiagnosis);
+      setIsEditing(false);
+
+      toast({
+        title: t('common.success'),
+        description: "Diagnosis updated successfully",
+      });
+    } catch (error) {
+      console.error('Save error:', error);
+      toast({
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : "Failed to update diagnosis",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -192,12 +238,62 @@ export default function Consultation() {
                   )}
                   
                   <div className="p-4 bg-gradient-card rounded-lg border border-border">
-                    <div className="prose prose-sm max-w-none">
-                      <p className="whitespace-pre-wrap text-foreground">{diagnosis}</p>
-                    </div>
+                    {isEditing ? (
+                      <Textarea
+                        value={editedDiagnosis}
+                        onChange={(e) => setEditedDiagnosis(e.target.value)}
+                        className="min-h-[200px] text-foreground"
+                        placeholder="Edit diagnosis..."
+                      />
+                    ) : (
+                      <div className="prose prose-sm max-w-none">
+                        <p className="whitespace-pre-wrap text-foreground">{diagnosis}</p>
+                      </div>
+                    )}
                   </div>
 
-                  {consultationId && (
+                  <div className="flex gap-2">
+                    {isEditing ? (
+                      <>
+                        <Button
+                          onClick={handleSaveDiagnosis}
+                          disabled={isSaving}
+                          className="flex-1"
+                        >
+                          {isSaving ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              {t('common.loading')}
+                            </>
+                          ) : (
+                            <>
+                              <Save className="w-4 h-4 mr-2" />
+                              {t('common.save')}
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          onClick={handleCancelEdit}
+                          variant="outline"
+                          disabled={isSaving}
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          {t('common.cancel')}
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        onClick={handleEditDiagnosis}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        <Edit2 className="w-4 h-4 mr-2" />
+                        {t('common.edit')}
+                      </Button>
+                    )}
+                  </div>
+
+                  {consultationId && !isEditing && (
                     <TestScheduleDialog 
                       consultationId={consultationId}
                       recommendedTest={diagnosis.includes('blood') ? 'Complete Blood Count' : undefined}
