@@ -21,11 +21,15 @@
     "demoCredentials": "Demo credentials for testing"
   },
   "patient": {
-    "title": "Patient Dashboard",
+    "title": "My Health Records",
+    "upcomingAppointments": "Upcoming Appointments",
+    "consultationHistory": "Consultation History",
+    "testResultsHistory": "Test Results History",
     "consultations": "My Consultations",
     "testResults": "My Test Results",
     "noConsultations": "No consultations found",
     "noTestResults": "No test results found",
+    "noUpcomingAppointments": "No upcoming appointments scheduled",
     "diagnosis": "Diagnosis",
     "symptoms": "Symptoms",
     "testResult": "Test Result",
@@ -33,6 +37,7 @@
   },
   "labs": {
     "title": "Laboratory Dashboard",
+    "upcomingTests": "Upcoming Scheduled Tests",
     "pendingTests": "Pending Tests",
     "completedTests": "Completed Tests",
     "noPendingTests": "No pending tests",
@@ -142,6 +147,10 @@
       "pendingTests": "Pending Tests",
       "completedTests": "Completed Tests",
       "totalPatients": "Total Patients"
+    },
+    "charts": {
+      "testStatus": "Test Status Distribution",
+      "overview": "Hospital Activity Overview"
     },
     "recentActivity": "Recent Activity",
     "unauthorized": "Unauthorized access. Admin privileges required."

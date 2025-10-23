@@ -4,9 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Activity, LogOut, FileText, TestTube } from 'lucide-react';
+import { Activity, LogOut, FileText, TestTube, Calendar, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { Badge } from '@/components/ui/badge';
 
 interface Consultation {
   id: string;
@@ -26,12 +27,23 @@ interface TestResult {
   };
 }
 
+interface UpcomingTest {
+  id: string;
+  test_name: string;
+  test_type: string;
+  scheduled_date: string;
+  scheduled_time: string;
+  department: string;
+  status: string;
+}
+
 export default function PatientDashboard() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { toast } = useToast();
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
+  const [upcomingTests, setUpcomingTests] = useState<UpcomingTest[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -78,6 +90,18 @@ export default function PatientDashboard() {
 
       if (resultsData) {
         setTestResults(resultsData as any);
+      }
+
+      // Load upcoming tests
+      const { data: upcomingData } = await supabase
+        .from('medical_tests')
+        .select('id, test_name, test_type, scheduled_date, scheduled_time, department, status')
+        .eq('user_id', user.id)
+        .eq('status', 'pending')
+        .order('scheduled_date', { ascending: true });
+
+      if (upcomingData) {
+        setUpcomingTests(upcomingData);
       }
     } catch (error: any) {
       console.error('Error loading patient data:', error);
@@ -126,11 +150,58 @@ export default function PatientDashboard() {
 
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="space-y-8">
-          {/* Consultations */}
+          {/* Upcoming Appointments */}
           <div>
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-              <FileText className="w-6 h-6" />
-              {t('patient.consultations')}
+              <Calendar className="w-6 h-6 text-primary" />
+              {t('patient.upcomingAppointments')}
+            </h2>
+            <div className="grid gap-4">
+              {upcomingTests.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6">
+                    <p className="text-muted-foreground text-center">
+                      {t('patient.noUpcomingAppointments')}
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                upcomingTests.map((test) => (
+                  <Card key={test.id}>
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle>{test.test_name}</CardTitle>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {test.department}
+                          </p>
+                        </div>
+                        <Badge>{test.test_type}</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-muted-foreground" />
+                          <span>{new Date(test.scheduled_date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-muted-foreground" />
+                          <span>{test.scheduled_time}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Consultations History */}
+          <div>
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <FileText className="w-6 h-6 text-secondary" />
+              {t('patient.consultationHistory')}
             </h2>
             <div className="grid gap-4">
               {consultations.length === 0 ? (
@@ -171,11 +242,11 @@ export default function PatientDashboard() {
             </div>
           </div>
 
-          {/* Test Results */}
+          {/* Test Results History */}
           <div>
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-              <TestTube className="w-6 h-6" />
-              {t('patient.testResults')}
+              <TestTube className="w-6 h-6 text-accent" />
+              {t('patient.testResultsHistory')}
             </h2>
             <div className="grid gap-4">
               {testResults.length === 0 ? (

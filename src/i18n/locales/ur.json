@@ -21,11 +21,15 @@
     "demoCredentials": "جانچ کے لیے ڈیمو اسناد"
   },
   "patient": {
-    "title": "مریض ڈیش بورڈ",
+    "title": "میرے صحت کے ریکارڈز",
+    "upcomingAppointments": "آنے والی ملاقاتیں",
+    "consultationHistory": "مشاورت کی تاریخ",
+    "testResultsHistory": "ٹیسٹ کے نتائج کی تاریخ",
     "consultations": "میری مشاورتیں",
     "testResults": "میرے ٹیسٹ کے نتائج",
     "noConsultations": "کوئی مشاورت نہیں ملی",
     "noTestResults": "کوئی ٹیسٹ کے نتائج نہیں ملے",
+    "noUpcomingAppointments": "کوئی آنے والی ملاقات طے نہیں",
     "diagnosis": "تشخیص",
     "symptoms": "علامات",
     "testResult": "ٹیسٹ کا نتیجہ",
@@ -33,6 +37,7 @@
   },
   "labs": {
     "title": "لیبارٹری ڈیش بورڈ",
+    "upcomingTests": "آنے والے طے شدہ ٹیسٹ",
     "pendingTests": "زیر التواء ٹیسٹ",
     "completedTests": "مکمل شدہ ٹیسٹ",
     "noPendingTests": "کوئی زیر التواء ٹیسٹ نہیں",
@@ -142,6 +147,10 @@
       "pendingTests": "زیر التواء ٹیسٹ",
       "completedTests": "مکمل ٹیسٹ",
       "totalPatients": "کل مریض"
+    },
+    "charts": {
+      "testStatus": "ٹیسٹ کی حیثیت کی تقسیم",
+      "overview": "ہسپتال کی سرگرمی کا جائزہ"
     },
     "recentActivity": "حالیہ سرگرمی",
     "unauthorized": "غیر مجاز رسائی۔ ایڈمن مراعات کی ضرورت ہے۔"

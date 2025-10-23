@@ -175,11 +175,11 @@ export default function LabsDashboard() {
 
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="space-y-8">
-          {/* Pending Tests */}
+          {/* Upcoming Scheduled Tests */}
           <div>
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-              <Clock className="w-6 h-6 text-yellow-500" />
-              {t('labs.pendingTests')} ({pendingTests.length})
+              <Clock className="w-6 h-6 text-primary" />
+              {t('labs.upcomingTests')} ({pendingTests.length})
             </h2>
             <div className="grid gap-4">
               {pendingTests.length === 0 ? (

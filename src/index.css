@@ -54,6 +54,12 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --chart-1: 188 78% 41%;
+    --chart-2: 142 76% 36%;
+    --chart-3: 200 60% 50%;
+    --chart-4: 45 93% 47%;
+    --chart-5: 280 60% 50%;
   }
 
   .dark {
@@ -99,6 +105,12 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --chart-1: 188 78% 45%;
+    --chart-2: 142 76% 40%;
+    --chart-3: 200 60% 55%;
+    --chart-4: 45 93% 55%;
+    --chart-5: 280 60% 55%;
   }
 }
 

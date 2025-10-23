@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Activity, LogOut, Users, FileText, TestTube, Clock, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from 'recharts';
 
 interface Stats {
   total_consultations: number;
@@ -199,6 +201,107 @@ export default function Admin() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats?.total_patients || 0}</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Charts Section */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Test Status Pie Chart */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle>{t('admin.charts.testStatus')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={{
+                    pending: {
+                      label: t('admin.stats.pendingTests'),
+                      color: 'hsl(var(--chart-1))',
+                    },
+                    completed: {
+                      label: t('admin.stats.completedTests'),
+                      color: 'hsl(var(--chart-2))',
+                    },
+                  }}
+                  className="h-[300px]"
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: t('admin.stats.pendingTests'), value: stats?.pending_tests || 0 },
+                          { name: t('admin.stats.completedTests'), value: stats?.completed_tests || 0 },
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        <Cell fill="hsl(var(--chart-1))" />
+                        <Cell fill="hsl(var(--chart-2))" />
+                      </Pie>
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+
+            {/* Activity Bar Chart */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle>{t('admin.charts.overview')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={{
+                    consultations: {
+                      label: t('admin.stats.totalConsultations'),
+                      color: 'hsl(var(--chart-3))',
+                    },
+                    tests: {
+                      label: t('admin.stats.totalTests'),
+                      color: 'hsl(var(--chart-4))',
+                    },
+                    patients: {
+                      label: t('admin.stats.totalPatients'),
+                      color: 'hsl(var(--chart-5))',
+                    },
+                  }}
+                  className="h-[300px]"
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={[
+                        {
+                          name: t('admin.stats.totalConsultations'),
+                          value: stats?.total_consultations || 0,
+                          fill: 'hsl(var(--chart-3))',
+                        },
+                        {
+                          name: t('admin.stats.totalTests'),
+                          value: stats?.total_tests || 0,
+                          fill: 'hsl(var(--chart-4))',
+                        },
+                        {
+                          name: t('admin.stats.totalPatients'),
+                          value: stats?.total_patients || 0,
+                          fill: 'hsl(var(--chart-5))',
+                        },
+                      ]}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="value" fill="hsl(var(--chart-3))" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
               </CardContent>
             </Card>
           </div>
