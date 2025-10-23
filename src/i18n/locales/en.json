@@ -8,7 +8,45 @@
     "save": "Save",
     "delete": "Delete",
     "edit": "Edit",
-    "submit": "Submit"
+    "submit": "Submit",
+    "confirm": "Confirm"
+  },
+  "auth": {
+    "title": "AI Health Assistant",
+    "subtitle": "Advanced medical diagnosis and analysis platform",
+    "signIn": "Sign In",
+    "description": "Access your medical consultation dashboard",
+    "email": "Email",
+    "password": "Password",
+    "demoCredentials": "Demo credentials for testing"
+  },
+  "patient": {
+    "title": "Patient Dashboard",
+    "consultations": "My Consultations",
+    "testResults": "My Test Results",
+    "noConsultations": "No consultations found",
+    "noTestResults": "No test results found",
+    "diagnosis": "Diagnosis",
+    "symptoms": "Symptoms",
+    "testResult": "Test Result",
+    "analysis": "AI Analysis"
+  },
+  "labs": {
+    "title": "Laboratory Dashboard",
+    "pendingTests": "Pending Tests",
+    "completedTests": "Completed Tests",
+    "noPendingTests": "No pending tests",
+    "noCompletedTests": "No completed tests yet",
+    "testType": "Test Type",
+    "department": "Department",
+    "scheduledDate": "Scheduled Date",
+    "scheduledTime": "Scheduled Time",
+    "notes": "Notes",
+    "enterResults": "Enter Test Results",
+    "resultsPlaceholder": "Enter the test results and analysis here...",
+    "markComplete": "Mark as Complete",
+    "completedOn": "Completed on",
+    "testCompleted": "Test marked as completed successfully"
   },
   "dashboard": {
     "title": "Welcome to Your Dashboard",

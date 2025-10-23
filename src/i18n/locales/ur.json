@@ -8,7 +8,45 @@
     "save": "محفوظ کریں",
     "delete": "حذف کریں",
     "edit": "ترمیم کریں",
-    "submit": "جمع کرائیں"
+    "submit": "جمع کرائیں",
+    "confirm": "تصدیق کریں"
+  },
+  "auth": {
+    "title": "AI صحت کا معاون",
+    "subtitle": "جدید طبی تشخیص اور تجزیہ پلیٹ فارم",
+    "signIn": "سائن ان کریں",
+    "description": "اپنے طبی مشاورتی ڈیش بورڈ تک رسائی حاصل کریں",
+    "email": "ای میل",
+    "password": "پاس ورڈ",
+    "demoCredentials": "جانچ کے لیے ڈیمو اسناد"
+  },
+  "patient": {
+    "title": "مریض ڈیش بورڈ",
+    "consultations": "میری مشاورتیں",
+    "testResults": "میرے ٹیسٹ کے نتائج",
+    "noConsultations": "کوئی مشاورت نہیں ملی",
+    "noTestResults": "کوئی ٹیسٹ کے نتائج نہیں ملے",
+    "diagnosis": "تشخیص",
+    "symptoms": "علامات",
+    "testResult": "ٹیسٹ کا نتیجہ",
+    "analysis": "AI تجزیہ"
+  },
+  "labs": {
+    "title": "لیبارٹری ڈیش بورڈ",
+    "pendingTests": "زیر التواء ٹیسٹ",
+    "completedTests": "مکمل شدہ ٹیسٹ",
+    "noPendingTests": "کوئی زیر التواء ٹیسٹ نہیں",
+    "noCompletedTests": "ابھی تک کوئی مکمل شدہ ٹیسٹ نہیں",
+    "testType": "ٹیسٹ کی قسم",
+    "department": "محکمہ",
+    "scheduledDate": "مقررہ تاریخ",
+    "scheduledTime": "مقررہ وقت",
+    "notes": "نوٹس",
+    "enterResults": "ٹیسٹ کے نتائج درج کریں",
+    "resultsPlaceholder": "یہاں ٹیسٹ کے نتائج اور تجزیہ درج کریں...",
+    "markComplete": "مکمل کے طور پر نشان زد کریں",
+    "completedOn": "مکمل ہوا",
+    "testCompleted": "ٹیسٹ کامیابی سے مکمل کے طور پر نشان زد کیا گیا"
   },
   "dashboard": {
     "title": "اپنے ڈیش بورڈ میں خوش آمدید",
