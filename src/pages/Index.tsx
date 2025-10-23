@@ -17,6 +17,7 @@ const Index = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [settingUpDemo, setSettingUpDemo] = useState(false);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -55,6 +56,30 @@ const Index = () => {
       }
     } catch (error) {
       console.error('Error fetching user role:', error);
+    }
+  };
+
+  const handleSetupDemo = async () => {
+    setSettingUpDemo(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('setup-demo-users', {
+        body: {}
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: t('common.success'),
+        description: 'Demo users created successfully! You can now login with:\n• admin@example.com / admin\n• doctor@example.com / admin\n• patient@example.com / admin\n• labs@example.com / admin',
+      });
+    } catch (error: any) {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setSettingUpDemo(false);
     }
   };
 
@@ -112,7 +137,25 @@ const Index = () => {
               {t('auth.description')}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            <Button 
+              onClick={handleSetupDemo} 
+              variant="outline" 
+              className="w-full"
+              disabled={settingUpDemo}
+            >
+              {settingUpDemo ? t('common.loading') : 'Setup Demo Users'}
+            </Button>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">{t('auth.email')}</Label>
@@ -145,7 +188,7 @@ const Index = () => {
 
         <div className="text-center text-sm text-muted-foreground">
           <p>{t('auth.demoCredentials')}</p>
-          <p className="font-mono mt-2">admin@example.com / admin</p>
+          <p className="font-mono mt-2">Click "Setup Demo Users" button above</p>
         </div>
       </div>
     </div>
