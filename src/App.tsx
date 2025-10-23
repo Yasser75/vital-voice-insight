@@ -13,6 +13,7 @@ import XRayAnalysis from "./pages/XRayAnalysis";
 import Admin from "./pages/Admin";
 import PatientDashboard from "./pages/PatientDashboard";
 import LabsDashboard from "./pages/LabsDashboard";
+import Leaflet from "./pages/Leaflet";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -96,6 +97,7 @@ const App = () => (
               </ProtectedRoute>
             }
           />
+          <Route path="/leaflet" element={<Leaflet />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
