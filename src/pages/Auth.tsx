@@ -10,9 +10,38 @@ export default function Auth() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate('/dashboard');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        // Redirect based on user role
+        try {
+          const { data: roles } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id);
+
+          if (roles && roles.length > 0) {
+            const role = roles[0].role;
+            switch (role) {
+              case 'doctor':
+                navigate('/dashboard');
+                break;
+              case 'admin':
+                navigate('/admin');
+                break;
+              case 'patient':
+                navigate('/patient-dashboard');
+                break;
+              case 'labs':
+                navigate('/labs-dashboard');
+                break;
+              default:
+                navigate('/dashboard');
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user role:', error);
+          navigate('/dashboard');
+        }
       }
     });
 
