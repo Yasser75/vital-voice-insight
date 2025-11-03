@@ -67,14 +67,14 @@
       "button": "Start Consultation"
     },
     "xray": {
-      "title": "X-Ray Analysis",
-      "description": "Upload medical imaging for AI-powered anomaly detection and highlighting",
+      "title": "Medical Test Analysis",
+      "description": "Upload and analyze medical tests and imaging with AI",
       "features": {
-        "upload": "Upload X-ray images",
-        "detection": "AI anomaly detection",
-        "highlighting": "Visual highlighting of concerns"
+        "upload": "Upload test results and medical images",
+        "detection": "Automatic anomaly detection",
+        "highlighting": "Visual highlighting of problem areas"
       },
-      "button": "Analyze X-Ray"
+      "button": "Analyze Medical Tests"
     },
     "admin": {
       "button": "Admin Dashboard"
