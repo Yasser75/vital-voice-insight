@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Consultation from "./pages/Consultation";
 import XRayAnalysis from "./pages/XRayAnalysis";
+import TestResultDetail from "./pages/TestResultDetail";
 import Admin from "./pages/Admin";
 import PatientDashboard from "./pages/PatientDashboard";
 import LabsDashboard from "./pages/LabsDashboard";
@@ -70,6 +71,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <XRayAnalysis />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/test-result/:id"
+            element={
+              <ProtectedRoute>
+                <TestResultDetail />
               </ProtectedRoute>
             }
           />

@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Activity, FileText, LogOut, Shield, TestTube, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { Activity, FileText, LogOut, Shield, TestTube } from 'lucide-react';
+import TestResultsTable from '@/components/TestResultsTable';
 import { useToast } from '@/hooks/use-toast';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { Badge } from '@/components/ui/badge';
@@ -202,141 +203,9 @@ export default function Dashboard() {
           <div>
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
               <TestTube className="w-6 h-6 text-accent" />
-              {t('dashboard.xray.title')}
+              Medical Test Analysis
             </h2>
-            <div className="grid gap-4">
-              {testResults.length === 0 ? (
-                <Card>
-                  <CardContent className="pt-6">
-                    <p className="text-muted-foreground text-center">
-                      No test results available
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                testResults.map((result) => {
-                  const isXRay = result.medical_tests?.test_type?.toLowerCase().includes('x-ray') || 
-                                 result.medical_tests?.test_type?.toLowerCase().includes('xray');
-                  const anomalies = result.anomalies_detected;
-
-                  return (
-                    <Card key={result.id}>
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle>
-                              {result.medical_tests?.test_name || 'Test Result'}
-                            </CardTitle>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {result.medical_tests?.consultations?.patients?.full_name} ({result.medical_tests?.consultations?.patients?.email})
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(result.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <Badge variant="secondary">
-                            {result.medical_tests?.test_type || 'Test'}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {/* X-Ray Image with Highlighted Abnormalities */}
-                          {isXRay && result.result_file_url && (
-                            <div className="space-y-3">
-                              <div className="relative rounded-lg overflow-hidden border border-border bg-black">
-                                <img
-                                  src={result.result_file_url}
-                                  alt="X-ray result"
-                                  className="w-full h-auto max-h-96 object-contain"
-                                />
-                                
-                                {anomalies && Array.isArray(anomalies) && anomalies.map((anomaly: any, index: number) => (
-                                  <div
-                                    key={index}
-                                    className="absolute border-2 border-red-500 bg-red-500/20 rounded"
-                                    style={{
-                                      left: `${anomaly.coordinates?.x || 0}%`,
-                                      top: `${anomaly.coordinates?.y || 0}%`,
-                                      width: `${anomaly.coordinates?.width || 10}%`,
-                                      height: `${anomaly.coordinates?.height || 10}%`,
-                                    }}
-                                  >
-                                    <div className="absolute -top-6 left-0 bg-red-500 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                                      {anomaly.description}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-
-                              {/* AI Detected Anomalies */}
-                              {anomalies && Array.isArray(anomalies) && anomalies.length > 0 && (
-                                <div className="space-y-3">
-                                  <div className="flex items-center gap-2">
-                                    <AlertCircle className="w-4 h-4 text-destructive" />
-                                    <h3 className="font-semibold text-sm uppercase tracking-wide">
-                                      Detected Abnormalities
-                                    </h3>
-                                  </div>
-                                  {anomalies.map((anomaly: any, index: number) => (
-                                    <div
-                                      key={index}
-                                      className="p-3 bg-accent rounded-lg border border-border space-y-2"
-                                    >
-                                      <div className="flex items-start justify-between">
-                                        <p className="text-sm font-medium">{anomaly.description}</p>
-                                        <Badge
-                                          variant={
-                                            anomaly.severity === 'high'
-                                              ? 'destructive'
-                                              : anomaly.severity === 'medium'
-                                              ? 'default'
-                                              : 'secondary'
-                                          }
-                                        >
-                                          {anomaly.severity}
-                                        </Badge>
-                                      </div>
-                                      <p className="text-xs text-muted-foreground">
-                                        Location: {anomaly.location}
-                                      </p>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {/* AI Analysis / Diagnosis */}
-                          {result.ai_analysis && (
-                            <div className="space-y-2">
-                              <p className="font-semibold text-sm uppercase tracking-wide text-primary">
-                                AI Diagnosis
-                              </p>
-                              <p className="text-sm text-foreground leading-relaxed bg-accent/50 p-3 rounded-lg">
-                                {result.ai_analysis}
-                              </p>
-                            </div>
-                          )}
-
-                          {/* AI Recommendations */}
-                          {result.ai_remarks && (
-                            <div className="space-y-2">
-                              <p className="font-semibold text-sm uppercase tracking-wide text-secondary">
-                                Recommendations
-                              </p>
-                              <p className="text-sm text-foreground leading-relaxed bg-secondary/10 p-3 rounded-lg">
-                                {result.ai_remarks}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })
-              )}
-            </div>
+            <TestResultsTable testResults={testResults} />
           </div>
 
           {/* Info Card */}

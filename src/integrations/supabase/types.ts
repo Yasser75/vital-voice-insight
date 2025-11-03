@@ -159,9 +159,13 @@ export type Database = {
           ai_remarks: string | null
           anomalies_detected: Json | null
           created_at: string
+          doctor_advice: string | null
+          doctor_remarks: string | null
           id: string
           result_data: Json | null
           result_file_url: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           test_id: string
           user_id: string
         }
@@ -170,9 +174,13 @@ export type Database = {
           ai_remarks?: string | null
           anomalies_detected?: Json | null
           created_at?: string
+          doctor_advice?: string | null
+          doctor_remarks?: string | null
           id?: string
           result_data?: Json | null
           result_file_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           test_id: string
           user_id: string
         }
@@ -181,9 +189,13 @@ export type Database = {
           ai_remarks?: string | null
           anomalies_detected?: Json | null
           created_at?: string
+          doctor_advice?: string | null
+          doctor_remarks?: string | null
           id?: string
           result_data?: Json | null
           result_file_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           test_id?: string
           user_id?: string
         }
