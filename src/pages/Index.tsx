@@ -6,9 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Activity } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import botLogo from '@/assets/boteye-health-bot.png';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -118,12 +118,14 @@ const Index = () => {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <div className="flex justify-center">
-            <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center shadow-medical">
-              <Activity className="w-8 h-8 text-white" />
-            </div>
+            <img 
+              src={botLogo} 
+              alt="Health-AI Agent" 
+              className="w-32 h-32 object-contain"
+            />
           </div>
           <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            {t('auth.title')}
+            Health-AI Agent
           </h1>
           <p className="text-muted-foreground">
             {t('auth.subtitle')}
