@@ -20,10 +20,12 @@ interface TestResult {
   medical_tests: {
     test_name: string;
     test_type: string;
-  };
-  patients: {
-    full_name: string;
-    email: string;
+    consultations: {
+      patients: {
+        full_name: string;
+        email: string;
+      };
+    };
   };
 }
 
@@ -65,8 +67,7 @@ export default function Dashboard() {
         .from('test_results')
         .select(`
           *,
-          medical_tests(test_name, test_type),
-          patients(full_name, email)
+          medical_tests(test_name, test_type, consultation_id, consultations(patient_id, patients(full_name, email)))
         `)
         .order('created_at', { ascending: false });
 
@@ -227,7 +228,7 @@ export default function Dashboard() {
                               {result.medical_tests?.test_name || 'Test Result'}
                             </CardTitle>
                             <p className="text-sm text-muted-foreground mt-1">
-                              {result.patients?.full_name} ({result.patients?.email})
+                              {result.medical_tests?.consultations?.patients?.full_name} ({result.medical_tests?.consultations?.patients?.email})
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {new Date(result.created_at).toLocaleDateString()}
