@@ -74,13 +74,14 @@ export default function LabsDashboard() {
   };
 
   const loadTests = async () => {
-    const { data: testsData } = await supabase
+    const { data: testsData, error } = await supabase
       .from('medical_tests')
-      .select('*, patients(full_name, email)')
-      .order('scheduled_date', { ascending: true });
+      .select('*, consultations(patients(full_name, email))')
+      .order('scheduled_date', { ascending: true, nullsFirst: false });
 
+    if (error) console.error('Error loading tests:', error);
     if (testsData) {
-      setTests(testsData as any);
+      setTests(testsData.map((t: any) => ({ ...t, patients: t.consultations?.patients })) as any);
     }
   };
 
