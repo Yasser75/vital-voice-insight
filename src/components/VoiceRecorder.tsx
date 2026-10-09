@@ -11,7 +11,7 @@ interface VoiceRecorderProps {
 }
 
 // Audio is recorded in short segments so text appears while the patient is still talking.
-const SEGMENT_MS = 6000;
+const SEGMENT_MS = 3000;
 
 export const VoiceRecorder = ({ onTranscriptComplete }: VoiceRecorderProps) => {
   const { i18n } = useTranslation();
@@ -24,7 +24,8 @@ export const VoiceRecorder = ({ onTranscriptComplete }: VoiceRecorderProps) => {
   const timerRef = useRef<number | null>(null);
   const activeRef = useRef(false);
   const textRef = useRef('');
-  const queueRef = useRef<Promise<void>>(Promise.resolve());
+  const segIdRef = useRef(0);
+  const partsRef = useRef<string[]>([]);
 
   const cleanup = () => {
     activeRef.current = false;
@@ -35,32 +36,30 @@ export const VoiceRecorder = ({ onTranscriptComplete }: VoiceRecorderProps) => {
   };
   useEffect(() => cleanup, []);
 
-  const transcribe = (blob: Blob) => {
-    if (blob.size < 2000) return; // silence / empty
+  const transcribe = async (blob: Blob) => {
+    if (blob.size < 1500) return; // silence / empty
+    const idx = segIdRef.current++;
     setPending((p) => p + 1);
-    // keep segments in order
-    queueRef.current = queueRef.current.then(async () => {
-      try {
-        const fd = new FormData();
-        fd.append('file', new File([blob], 'segment.webm', { type: 'audio/webm' }));
-        fd.append('language', i18n.language?.startsWith('ur') ? 'ur' : 'en');
-        const { data, error } = await supabase.functions.invoke('transcribe-audio', { body: fd });
-        if (error) {
-          const details = error instanceof FunctionsHttpError ? await error.context.text() : error.message;
-          throw new Error(details);
-        }
-        if (data?.text) {
-          textRef.current = `${textRef.current} ${data.text}`.trim();
-          setText(textRef.current);
-          onTranscriptComplete(textRef.current);
-        }
-      } catch (e) {
-        console.error('Transcription error', e);
-        toast({ title: 'Transcription failed', description: 'Part of the recording could not be transcribed.', variant: 'destructive' });
-      } finally {
-        setPending((p) => p - 1);
+    // segments are sent in parallel and placed back in spoken order
+    try {
+      const fd = new FormData();
+      fd.append('file', new File([blob], 'segment.webm', { type: 'audio/webm' }));
+      fd.append('language', i18n.language?.startsWith('ur') ? 'ur' : 'en');
+      const { data, error } = await supabase.functions.invoke('transcribe-audio', { body: fd });
+      if (error) {
+        const details = error instanceof FunctionsHttpError ? await error.context.text() : error.message;
+        throw new Error(details);
       }
-    });
+      partsRef.current[idx] = data?.text || '';
+      textRef.current = partsRef.current.filter(Boolean).join(' ');
+      setText(textRef.current);
+      onTranscriptComplete(textRef.current);
+    } catch (e) {
+      console.error('Transcription error', e);
+      toast({ title: 'Transcription failed', description: 'Part of the recording could not be transcribed.', variant: 'destructive' });
+    } finally {
+      setPending((p) => p - 1);
+    }
   };
 
   const recordSegment = () => {
@@ -69,8 +68,9 @@ export const VoiceRecorder = ({ onTranscriptComplete }: VoiceRecorderProps) => {
     const chunks: Blob[] = [];
     rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
     rec.onstop = () => {
-      transcribe(new Blob(chunks, { type: 'audio/webm' }));
+      // start the next segment immediately, then upload this one
       if (activeRef.current) recordSegment();
+      transcribe(new Blob(chunks, { type: 'audio/webm' }));
     };
     recorderRef.current = rec;
     rec.start();
@@ -85,6 +85,8 @@ export const VoiceRecorder = ({ onTranscriptComplete }: VoiceRecorderProps) => {
       return;
     }
     textRef.current = '';
+    partsRef.current = [];
+    segIdRef.current = 0;
     setText('');
     activeRef.current = true;
     setIsRecording(true);
@@ -109,12 +111,12 @@ export const VoiceRecorder = ({ onTranscriptComplete }: VoiceRecorderProps) => {
         {isRecording ? <MicOff className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
       </Button>
       <p className="text-sm text-muted-foreground flex items-center gap-2">
-        {isRecording ? 'Listening... Click to stop' : busy ? 'Finishing transcription...' : 'Click to start recording'}
+        {isRecording ? (busy ? 'Listening & transcribing... Click to stop' : 'Listening... Click to stop') : busy ? 'Finishing transcription...' : 'Click to start recording'}
         {busy && <Loader2 className="w-4 h-4 animate-spin" />}
       </p>
       {(isRecording || text || busy) && (
         <div className="w-full rounded-md border border-border bg-muted/40 p-3 text-sm min-h-16" dir="auto">
-          {text || <span className="text-muted-foreground">Text will appear every few seconds while you speak...</span>}
+          {text || <span className="text-muted-foreground">Text will appear every 3 seconds while you speak...</span>}
         </div>
       )}
     </div>
