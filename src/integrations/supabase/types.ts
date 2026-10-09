@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          created_at: string
+          department: string
+          id: string
+          patient_name: string
+          preferred_date: string
+          preferred_time: string | null
+          reason: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          department?: string
+          id?: string
+          patient_name: string
+          preferred_date: string
+          preferred_time?: string | null
+          reason: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          department?: string
+          id?: string
+          patient_name?: string
+          preferred_date?: string
+          preferred_time?: string | null
+          reason?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       consultations: {
         Row: {
           ai_confidence: number | null
