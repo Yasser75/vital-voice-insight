@@ -13,8 +13,9 @@ import TestScheduleDialog from '@/components/TestScheduleDialog';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function Consultation() {
-  const { t } = useTranslation();
-  const [transcript, setTranscript] = useState('');
+  const { t, i18n } = useTranslation();
+  const [transcriptState, setTranscript] = useState('');
+  const transcript = transcriptState;
   const [diagnosis, setDiagnosis] = useState('');
   const [editedDiagnosis, setEditedDiagnosis] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -22,6 +23,31 @@ export default function Consultation() {
   const [isSaving, setIsSaving] = useState(false);
   const [confidence, setConfidence] = useState<number | null>(null);
   const [consultationId, setConsultationId] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<string[]>([]);
+
+  const speak = (texts: string[]) => {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const isUrdu = texts.some((t) => /[\u0600-\u06FF]/.test(t)) || i18n.language?.startsWith('ur');
+    const lang = isUrdu ? 'ur-PK' : 'en-US';
+    const voice = window.speechSynthesis.getVoices().find((v) => v.lang.startsWith(isUrdu ? 'ur' : 'en'));
+    [isUrdu ? 'ڈاکٹر کو مزید معلومات درکار ہیں۔' : 'I have a few questions for you.', ...texts].forEach((t) => {
+      const u = new SpeechSynthesisUtterance(t);
+      u.lang = lang; u.rate = 0.95;
+      if (voice) u.voice = voice;
+      window.speechSynthesis.speak(u);
+    });
+  };
+
+  const submitAnswers = () => {
+    const qa = questions.map((q, i) => `Q: ${q}\nA: ${answers[i]?.trim() || 'No answer'}`).join('\n');
+    const updated = `${transcript}\n\nClarification answers:\n${qa}`;
+    setTranscript(updated);
+    setQuestions([]);
+    setAnswers([]);
+    analyzeSymptoms(updated);
+  };
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const appointmentId = searchParams.get('appointment');
@@ -42,7 +68,8 @@ export default function Consultation() {
     setTranscript(transcriptText);
   };
 
-  const analyzeSymptoms = async () => {
+  const analyzeSymptoms = async (override?: string | unknown) => {
+    const transcript = typeof override === 'string' ? override : transcriptState;
     if (!transcript) {
       toast({
         title: t('common.error'),
@@ -96,6 +123,22 @@ export default function Consultation() {
       });
 
       if (error) throw error;
+
+      const qs: string[] = data.questions || [];
+      setQuestions(qs);
+      setAnswers(qs.map(() => ''));
+      if (qs.length) speak(qs);
+
+      if (consultationId) {
+        await supabase.from('consultations')
+          .update({ transcript, diagnosis: data.diagnosis, ai_confidence: data.confidence })
+          .eq('id', consultationId);
+        setDiagnosis(data.diagnosis);
+        setEditedDiagnosis(data.diagnosis);
+        setConfidence(data.confidence);
+        toast({ title: t('common.success'), description: 'Diagnosis updated with new information' });
+        return;
+      }
 
       // Save consultation
       const { data: consultation, error: consultationError } = await supabase
