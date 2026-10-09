@@ -37,6 +37,8 @@ serve(async (req) => {
 3. Recommended medical tests
 4. Urgency assessment
 
+If important information is missing to narrow the diagnosis (e.g. duration, severity, fever, medications, history), end your answer with a section exactly titled "CLARIFYING QUESTIONS:" followed by up to 3 short, simple questions addressed directly to the patient, each on its own line starting with "- ". Omit that section if no more information is needed. If the transcript is in Urdu, write the questions in Urdu.
+
 IMPORTANT: This is for medical professional assistance only. Always recommend consulting with a healthcare provider.`
           },
           {
@@ -61,9 +63,20 @@ IMPORTANT: This is for medical professional assistance only. Always recommend co
     const confidenceMatch = analysis.match(/(\d+)%/);
     const confidence = confidenceMatch ? parseInt(confidenceMatch[1]) : 75;
 
+    let diagnosisText = analysis;
+    let questions: string[] = [];
+    const idx = analysis.search(/\**\s*CLARIFYING QUESTIONS:?\s*\**/i);
+    if (idx >= 0) {
+      diagnosisText = analysis.slice(0, idx).trim();
+      questions = analysis.slice(idx).split('\n').slice(1)
+        .map((l: string) => l.replace(/^\s*([-*•]|\d+[.)])\s*/, '').replace(/\*\*/g, '').trim())
+        .filter((l: string) => l.length > 3).slice(0, 3);
+    }
+
     return new Response(
       JSON.stringify({
-        diagnosis: analysis,
+        diagnosis: diagnosisText,
+        questions,
         confidence: confidence,
         timestamp: new Date().toISOString()
       }),
