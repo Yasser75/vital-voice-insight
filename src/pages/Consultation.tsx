@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { VoiceRecorder } from '@/components/VoiceRecorder';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +23,20 @@ export default function Consultation() {
   const [confidence, setConfidence] = useState<number | null>(null);
   const [consultationId, setConsultationId] = useState<string | null>(null);
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const appointmentId = searchParams.get('appointment');
+  const [appointment, setAppointment] = useState<any>(null);
+
+  useEffect(() => {
+    if (!appointmentId) return;
+    supabase.from('appointments').select('*').eq('id', appointmentId).maybeSingle()
+      .then(({ data }) => {
+        setAppointment(data);
+        if (data && data.status === 'requested' || data?.status === 'confirmed') {
+          supabase.from('appointments').update({ status: 'in_progress' }).eq('id', data.id).then(() => {});
+        }
+      });
+  }, [appointmentId]);
 
   const handleTranscriptComplete = (transcriptText: string) => {
     setTranscript(transcriptText);
@@ -42,11 +57,12 @@ export default function Consultation() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Create a dummy patient for MVP (in production, this would be selected from a list)
-      const { data: patient, error: patientError } = await supabase
+      const patientUserId = appointment?.user_id || user.id;
+      const { data: patient } = await supabase
         .from('patients')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', patientUserId)
+        .limit(1)
         .maybeSingle();
 
       let patientId = patient?.id;
@@ -55,15 +71,19 @@ export default function Consultation() {
         const { data: newPatient, error: createError } = await supabase
           .from('patients')
           .insert({
-            user_id: user.id,
-            full_name: 'Demo Patient',
-            email: user.email || 'demo@example.com',
+            user_id: patientUserId,
+            full_name: appointment?.patient_name || 'Demo Patient',
+            email: appointment ? 'not-provided@example.com' : (user.email || 'demo@example.com'),
           })
           .select('id')
           .single();
 
         if (createError) throw createError;
         patientId = newPatient.id;
+      }
+
+      if (appointment) {
+        await supabase.from('appointments').update({ status: 'completed' }).eq('id', appointment.id);
       }
 
       // Extract symptoms from transcript
