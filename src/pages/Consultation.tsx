@@ -276,6 +276,34 @@ export default function Consultation() {
                   </Button>
                 </div>
               )}
+              {questions.length > 0 && (
+                <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-semibold flex items-center gap-2"><HelpCircle className="w-4 h-4 text-primary" />AI needs more information</p>
+                    <Button size="sm" variant="outline" onClick={() => speak(questions)}>
+                      <Volume2 className="w-4 h-4 mr-1" />Read aloud
+                    </Button>
+                  </div>
+                  {questions.map((q, i) => (
+                    <div key={i} className="space-y-1">
+                      <p className="text-sm font-medium" dir="auto">{i + 1}. {q}</p>
+                      <Textarea
+                        dir="auto"
+                        rows={2}
+                        value={answers[i] || ''}
+                        onChange={(e) => setAnswers(answers.map((a, j) => (j === i ? e.target.value : a)))}
+                        placeholder="Patient's answer..."
+                      />
+                    </div>
+                  ))}
+                  <div className="flex gap-2">
+                    <Button onClick={submitAnswers} disabled={isAnalyzing} className="flex-1">
+                      {isAnalyzing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}Re-analyze with answers
+                    </Button>
+                    <Button variant="ghost" onClick={() => { window.speechSynthesis?.cancel(); setQuestions([]); }}>Skip</Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
