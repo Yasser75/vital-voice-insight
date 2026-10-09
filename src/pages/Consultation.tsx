@@ -184,7 +184,9 @@ export default function Consultation() {
               {t('consultation.title')}
             </h1>
             <p className="text-muted-foreground">
-              Record patient symptoms and receive AI-powered analysis
+              {appointment
+                ? `Patient: ${appointment.patient_name} · ${appointment.department} · Reason: ${appointment.reason}`
+                : 'Record patient symptoms and receive AI-powered analysis'}
             </p>
           </div>
           <LanguageSwitcher />

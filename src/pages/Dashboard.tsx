@@ -9,6 +9,7 @@ import TestResultsTable from '@/components/TestResultsTable';
 import { useToast } from '@/hooks/use-toast';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { Badge } from '@/components/ui/badge';
+import DoctorAppointments from '@/components/DoctorAppointments';
 
 interface TestResult {
   id: string;
@@ -160,6 +161,8 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           )}
+
+          <DoctorAppointments />
 
           <div className="grid md:grid-cols-2 gap-6">
             {/* Consultation Card */}
