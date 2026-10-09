@@ -1,85 +1,102 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff } from 'lucide-react';
+import { Mic, MicOff, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 
 interface VoiceRecorderProps {
   onTranscriptComplete: (transcript: string, audioUrl?: string) => void;
 }
 
+// Audio is recorded in short segments so text appears while the patient is still talking.
+const SEGMENT_MS = 6000;
+
 export const VoiceRecorder = ({ onTranscriptComplete }: VoiceRecorderProps) => {
   const { i18n } = useTranslation();
-  const [isRecording, setIsRecording] = useState(false);
-  const [finalText, setFinalText] = useState('');
-  const [interim, setInterim] = useState('');
-  const recognitionRef = useRef<any>(null);
-  const finalRef = useRef('');
-  const stoppingRef = useRef(false);
   const { toast } = useToast();
+  const [isRecording, setIsRecording] = useState(false);
+  const [pending, setPending] = useState(0);
+  const [text, setText] = useState('');
+  const streamRef = useRef<MediaStream | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const timerRef = useRef<number | null>(null);
+  const activeRef = useRef(false);
+  const textRef = useRef('');
+  const queueRef = useRef<Promise<void>>(Promise.resolve());
 
-  useEffect(() => () => recognitionRef.current?.stop(), []);
+  const cleanup = () => {
+    activeRef.current = false;
+    if (timerRef.current) window.clearTimeout(timerRef.current);
+    if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+  };
+  useEffect(() => cleanup, []);
 
-  const startRecording = () => {
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) {
-      toast({
-        title: 'Not supported',
-        description: 'Live transcription needs Google Chrome or Microsoft Edge.',
-        variant: 'destructive',
-      });
+  const transcribe = (blob: Blob) => {
+    if (blob.size < 2000) return; // silence / empty
+    setPending((p) => p + 1);
+    // keep segments in order
+    queueRef.current = queueRef.current.then(async () => {
+      try {
+        const fd = new FormData();
+        fd.append('file', new File([blob], 'segment.webm', { type: 'audio/webm' }));
+        fd.append('language', i18n.language?.startsWith('ur') ? 'ur' : 'en');
+        const { data, error } = await supabase.functions.invoke('transcribe-audio', { body: fd });
+        if (error) {
+          const details = error instanceof FunctionsHttpError ? await error.context.text() : error.message;
+          throw new Error(details);
+        }
+        if (data?.text) {
+          textRef.current = `${textRef.current} ${data.text}`.trim();
+          setText(textRef.current);
+          onTranscriptComplete(textRef.current);
+        }
+      } catch (e) {
+        console.error('Transcription error', e);
+        toast({ title: 'Transcription failed', description: 'Part of the recording could not be transcribed.', variant: 'destructive' });
+      } finally {
+        setPending((p) => p - 1);
+      }
+    });
+  };
+
+  const recordSegment = () => {
+    if (!activeRef.current || !streamRef.current) return;
+    const rec = new MediaRecorder(streamRef.current);
+    const chunks: Blob[] = [];
+    rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+    rec.onstop = () => {
+      transcribe(new Blob(chunks, { type: 'audio/webm' }));
+      if (activeRef.current) recordSegment();
+    };
+    recorderRef.current = rec;
+    rec.start();
+    timerRef.current = window.setTimeout(() => rec.state === 'recording' && rec.stop(), SEGMENT_MS);
+  };
+
+  const startRecording = async () => {
+    try {
+      streamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      toast({ title: 'Microphone Error', description: 'Please allow microphone access.', variant: 'destructive' });
       return;
     }
-    const rec = new SR();
-    rec.lang = i18n.language?.startsWith('ur') ? 'ur-PK' : 'en-US';
-    rec.continuous = true;
-    rec.interimResults = true;
-    finalRef.current = '';
-    stoppingRef.current = false;
-    setFinalText('');
-    setInterim('');
-
-    rec.onresult = (e: any) => {
-      let live = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const txt = e.results[i][0].transcript;
-        if (e.results[i].isFinal) finalRef.current += txt.trim() + ' ';
-        else live += txt;
-      }
-      setFinalText(finalRef.current);
-      setInterim(live);
-      onTranscriptComplete(finalRef.current.trim());
-    };
-    rec.onerror = (e: any) => {
-      if (e.error === 'no-speech' || e.error === 'aborted') return;
-      toast({
-        title: 'Microphone Error',
-        description: e.error === 'not-allowed' ? 'Please allow microphone access.' : `Transcription error: ${e.error}`,
-        variant: 'destructive',
-      });
-      stoppingRef.current = true;
-      setIsRecording(false);
-    };
-    rec.onend = () => {
-      // Browser stops after silence; keep listening until the user clicks stop
-      if (!stoppingRef.current) {
-        try { rec.start(); return; } catch { /* ignore */ }
-      }
-      setIsRecording(false);
-      setInterim('');
-      onTranscriptComplete(finalRef.current.trim());
-    };
-
-    recognitionRef.current = rec;
-    rec.start();
+    textRef.current = '';
+    setText('');
+    activeRef.current = true;
     setIsRecording(true);
-    toast({ title: 'Recording Started', description: "Speak clearly about the patient's symptoms" });
+    recordSegment();
   };
 
   const stopRecording = () => {
-    stoppingRef.current = true;
-    recognitionRef.current?.stop();
+    setIsRecording(false);
+    cleanup();
   };
+
+  const busy = pending > 0;
 
   return (
     <div className="flex flex-col items-center gap-4 w-full">
@@ -91,14 +108,13 @@ export const VoiceRecorder = ({ onTranscriptComplete }: VoiceRecorderProps) => {
       >
         {isRecording ? <MicOff className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
       </Button>
-      <p className="text-sm text-muted-foreground">
-        {isRecording ? 'Listening... Click to stop' : 'Click to start recording'}
+      <p className="text-sm text-muted-foreground flex items-center gap-2">
+        {isRecording ? 'Listening... Click to stop' : busy ? 'Finishing transcription...' : 'Click to start recording'}
+        {busy && <Loader2 className="w-4 h-4 animate-spin" />}
       </p>
-      {(isRecording || finalText) && (
+      {(isRecording || text || busy) && (
         <div className="w-full rounded-md border border-border bg-muted/40 p-3 text-sm min-h-16" dir="auto">
-          <span>{finalText}</span>
-          <span className="text-muted-foreground italic">{interim}</span>
-          {!finalText && !interim && <span className="text-muted-foreground">Waiting for speech...</span>}
+          {text || <span className="text-muted-foreground">Text will appear every few seconds while you speak...</span>}
         </div>
       )}
     </div>
