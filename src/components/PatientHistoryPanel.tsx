@@ -2,13 +2,20 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { History, ChevronDown, ChevronRight, TestTube } from 'lucide-react';
+import { History, ChevronDown, ChevronRight, TestTube, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 /** Shows a patient's previous consultations and their tests/results for the doctor. */
 export default function PatientHistoryPanel({ patientUserId, patientName }: { patientUserId: string; patientName?: string }) {
   const [visits, setVisits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const q = query.trim().toLowerCase();
+  const filtered = !q ? visits : visits.filter((v) => [
+    new Date(v.consultation_date).toLocaleDateString(), v.diagnosis, ...(v.symptoms || []),
+    ...(v.medical_tests || []).flatMap((t: any) => [t.test_name, t.test_type, t.status, ...(t.test_results || []).flatMap((r: any) => [r.doctor_remarks, r.ai_remarks, r.ai_analysis])]),
+  ].filter(Boolean).join(' ').toLowerCase().includes(q));
 
   useEffect(() => {
     (async () => {
@@ -45,8 +52,14 @@ export default function PatientHistoryPanel({ patientUserId, patientName }: { pa
         ) : visits.length === 0 ? (
           <p className="text-sm text-muted-foreground">No previous visits on record.</p>
         ) : (
+          <>
+          <div className="relative mb-3">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input className="pl-9" placeholder="Search past visits: symptom, diagnosis, test, date..." value={query} onChange={(e) => setQuery(e.target.value)} />
+          </div>
+          {filtered.length === 0 && <p className="text-sm text-muted-foreground">No visits match "{query}".</p>}
           <div className="divide-y divide-border max-h-[420px] overflow-y-auto">
-            {visits.map((v) => {
+            {filtered.map((v) => {
               const open = openId === v.id;
               const tests = v.medical_tests || [];
               return (
@@ -85,6 +98,7 @@ export default function PatientHistoryPanel({ patientUserId, patientName }: { pa
               );
             })}
           </div>
+          </>
         )}
       </CardContent>
     </Card>
