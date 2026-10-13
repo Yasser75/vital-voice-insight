@@ -84,9 +84,24 @@ IMPORTANT: This is for medical professional assistance only. Always recommend co
         .filter((l: string) => l.length > 3 && !/CLARIFYING QUESTIONS/i.test(l)).slice(0, 3);
     }
 
+    // Extract recommended tests as a checklist
+    const tests: string[] = [];
+    const lines = diagnosisText.split('\n');
+    let inTests = false;
+    for (const line of lines) {
+      const clean = line.replace(/\*\*/g, '').trim();
+      if (/recommended (medical )?tests?/i.test(clean) && clean.length < 60) { inTests = true; continue; }
+      if (inTests && (/^(\d+\.\s*)?(urgency|confidence|possible diagnos)/i.test(clean) || /^#+\s/.test(clean))) break;
+      if (inTests && /^\s*([-*•]|\d+[.)])\s+/.test(line)) {
+        const name = clean.replace(/^([-*•]|\d+[.)])\s*/, '').split(/[:(]/)[0].replace(/\s+-\s.*$/, '').trim();
+        if (name && name.length < 80 && !tests.includes(name)) tests.push(name);
+      }
+    }
+
     return new Response(
       JSON.stringify({
         diagnosis: diagnosisText,
+        tests: tests.slice(0, 10),
         questions,
         confidence: confidence,
         timestamp: new Date().toISOString()
