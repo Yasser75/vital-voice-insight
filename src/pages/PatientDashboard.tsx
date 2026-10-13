@@ -10,6 +10,7 @@ import { Activity, LogOut, FileText, Calendar, Clock, TestTube, Image as ImageIc
 import { useToast } from '@/hooks/use-toast';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import RequestAppointmentDialog from '@/components/RequestAppointmentDialog';
+import UploadTestResultDialog from '@/components/UploadTestResultDialog';
 import XRayViewer from '@/components/XRayViewer';
 
 const isXRay = (type?: string) => !!type && /x-?ray/i.test(type);
