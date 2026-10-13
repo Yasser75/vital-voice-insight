@@ -25,14 +25,15 @@ export default function Consultation() {
   const [consultationId, setConsultationId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<string[]>([]);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [rejection, setRejection] = useState('');
 
-  const speak = (texts: string[]) => {
+  const speak = (texts: string[], noIntro = false) => {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     const isUrdu = texts.some((t) => /[\u0600-\u06FF]/.test(t)) || i18n.language?.startsWith('ur');
     const lang = isUrdu ? 'ur-PK' : 'en-US';
     const voice = window.speechSynthesis.getVoices().find((v) => v.lang.startsWith(isUrdu ? 'ur' : 'en'));
-    [isUrdu ? 'ڈاکٹر کو مزید معلومات درکار ہیں۔' : 'I have a few questions for you.', ...texts].forEach((t) => {
+    (noIntro ? texts : [isUrdu ? 'ڈاکٹر کو مزید معلومات درکار ہیں۔' : 'I have a few questions for you.', ...texts]).forEach((t) => {
       const u = new SpeechSynthesisUtterance(t);
       u.lang = lang; u.rate = 0.95;
       if (voice) u.voice = voice;
@@ -109,10 +110,6 @@ export default function Consultation() {
         patientId = newPatient.id;
       }
 
-      if (appointment) {
-        await supabase.from('appointments').update({ status: 'completed' }).eq('id', appointment.id);
-      }
-
       // Extract symptoms from transcript
       const symptoms = transcript.toLowerCase().includes('headache') 
         ? ['headache', 'dizziness', 'light sensitivity'] 
@@ -123,6 +120,19 @@ export default function Consultation() {
       });
 
       if (error) throw error;
+
+      if (data.rejected) {
+        setRejection(data.message);
+        setTranscript('');
+        setQuestions([]);
+        speak([data.message], true);
+        return;
+      }
+      setRejection('');
+
+      if (appointment) {
+        await supabase.from('appointments').update({ status: 'completed' }).eq('id', appointment.id);
+      }
 
       const qs: string[] = data.questions || [];
       setQuestions(qs);
@@ -248,7 +258,13 @@ export default function Consultation() {
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-6">
-              <VoiceRecorder onTranscriptComplete={handleTranscriptComplete} />
+              <VoiceRecorder onTranscriptComplete={(t) => { setRejection(''); handleTranscriptComplete(t); }} />
+              {rejection && (
+                <div className="w-full rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm" dir="auto">
+                  <p className="font-semibold mb-1">Not a health-related conversation</p>
+                  <p className="text-muted-foreground">{rejection}</p>
+                </div>
+              )}
               
               {transcript && (
                 <div className="w-full space-y-4">
