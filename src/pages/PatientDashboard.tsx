@@ -117,6 +117,10 @@ export default function PatientDashboard() {
                     {test.scheduled_date && <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{new Date(test.scheduled_date).toLocaleDateString()}</span>}
                     {test.scheduled_time && <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{test.scheduled_time}</span>}
                   </div>
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <span className="text-xs text-muted-foreground">Had this test done elsewhere?</span>
+                    <UploadTestResultDialog test={test} onUploaded={load} />
+                  </div>
                 </CardContent>
               </Card>
             ))}
