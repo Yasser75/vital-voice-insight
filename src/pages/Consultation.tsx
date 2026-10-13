@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import TestScheduleDialog from '@/components/TestScheduleDialog';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import PatientHistoryPanel from '@/components/PatientHistoryPanel';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function Consultation() {
   const { t, i18n } = useTranslation();
@@ -26,6 +28,8 @@ export default function Consultation() {
   const [questions, setQuestions] = useState<string[]>([]);
   const [answers, setAnswers] = useState<string[]>([]);
   const [rejection, setRejection] = useState('');
+  const [aiTests, setAiTests] = useState<string[]>([]);
+  const [checkedTests, setCheckedTests] = useState<string[]>([]);
 
   const speak = (texts: string[], noIntro = false) => {
     if (!('speechSynthesis' in window)) return;
@@ -133,6 +137,10 @@ export default function Consultation() {
       if (appointment) {
         await supabase.from('appointments').update({ status: 'completed' }).eq('id', appointment.id);
       }
+
+      const recTests: string[] = data.tests || [];
+      setAiTests(recTests);
+      setCheckedTests([]);
 
       const qs: string[] = data.questions || [];
       setQuestions(qs);
@@ -244,6 +252,10 @@ export default function Consultation() {
           </div>
           <LanguageSwitcher />
         </div>
+
+        {appointment?.user_id && (
+          <PatientHistoryPanel patientUserId={appointment.user_id} patientName={appointment.patient_name} />
+        )}
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Recording Section */}
@@ -402,10 +414,34 @@ export default function Consultation() {
                     )}
                   </div>
 
+                  {aiTests.length > 0 && !isEditing && (
+                    <div className="rounded-lg border border-border p-4 space-y-2">
+                      <p className="font-semibold text-sm">AI recommended tests — tick to schedule</p>
+                      {aiTests.map((name) => (
+                        <label key={name} className="flex items-center gap-2 text-sm cursor-pointer">
+                          <Checkbox
+                            checked={checkedTests.includes(name)}
+                            onCheckedChange={(v) => setCheckedTests(v ? [...checkedTests, name] : checkedTests.filter((x) => x !== name))}
+                          />
+                          {name}
+                        </label>
+                      ))}
+                      <div className="flex gap-2 pt-1">
+                        <Button type="button" size="sm" variant="ghost" onClick={() => setCheckedTests(aiTests)}>Select all</Button>
+                        <Button type="button" size="sm" variant="ghost" onClick={() => setCheckedTests([])}>Clear</Button>
+                      </div>
+                    </div>
+                  )}
+
                   {consultationId && !isEditing && (
-                    <TestScheduleDialog 
+                    <TestScheduleDialog
                       consultationId={consultationId}
-                      recommendedTest={diagnosis.includes('blood') ? 'Complete Blood Count' : undefined}
+                      selectedTests={checkedTests}
+                      patientUserId={appointment?.user_id}
+                      onScheduled={() => {
+                        setAiTests(aiTests.filter((x) => !checkedTests.includes(x)));
+                        setCheckedTests([]);
+                      }}
                     />
                   )}
                 </div>
