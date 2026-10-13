@@ -81,7 +81,7 @@ IMPORTANT: This is for medical professional assistance only. Always recommend co
       diagnosisText = analysis.slice(0, idx).trim();
       questions = analysis.slice(idx).split('\n').slice(1)
         .map((l: string) => l.replace(/^\s*([-*•]|\d+[.)])\s*/, '').replace(/\*\*/g, '').trim())
-        .filter((l: string) => l.length > 3).slice(0, 3);
+        .filter((l: string) => l.length > 3 && !/CLARIFYING QUESTIONS/i.test(l)).slice(0, 3);
     }
 
     return new Response(
