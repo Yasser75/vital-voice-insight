@@ -10,6 +10,7 @@ import { Activity, LogOut, FileText, Calendar, Clock, TestTube, Image as ImageIc
 import { useToast } from '@/hooks/use-toast';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import RequestAppointmentDialog from '@/components/RequestAppointmentDialog';
+import UploadTestResultDialog from '@/components/UploadTestResultDialog';
 import XRayViewer from '@/components/XRayViewer';
 
 const isXRay = (type?: string) => !!type && /x-?ray/i.test(type);
@@ -116,6 +117,10 @@ export default function PatientDashboard() {
                   <div className="flex gap-4 text-sm">
                     {test.scheduled_date && <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{new Date(test.scheduled_date).toLocaleDateString()}</span>}
                     {test.scheduled_time && <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{test.scheduled_time}</span>}
+                  </div>
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <span className="text-xs text-muted-foreground">Had this test done elsewhere?</span>
+                    <UploadTestResultDialog test={test} onUploaded={load} />
                   </div>
                 </CardContent>
               </Card>
