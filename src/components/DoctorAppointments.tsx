@@ -16,6 +16,7 @@ export default function DoctorAppointments() {
       .from('appointments')
       .select('*')
       .in('status', ['requested', 'confirmed', 'in_progress'])
+      .gte('preferred_date', new Date().toISOString().slice(0, 10))
       .order('preferred_date', { ascending: true })
       .order('preferred_time', { ascending: true });
     setItems(data || []);
