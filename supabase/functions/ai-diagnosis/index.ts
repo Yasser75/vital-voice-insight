@@ -39,6 +39,8 @@ serve(async (req) => {
 
 If important information is missing to narrow the diagnosis (e.g. duration, severity, fever, medications, history), end your answer with a section exactly titled "CLARIFYING QUESTIONS:" followed by up to 3 short, simple questions addressed directly to the patient, each on its own line starting with "- ". Omit that section if no more information is needed. If the transcript is in Urdu, write the questions in Urdu.
 
+SCOPE RULE: You only handle health and medical conversations (symptoms, illness, injuries, medications, mental health, medical history). If the transcript is not about the patient's health (e.g. politics, sports, small talk, jokes, general questions, requests unrelated to health), reply with exactly the single word NOT_HEALTH_RELATED and nothing else.
+
 IMPORTANT: This is for medical professional assistance only. Always recommend consulting with a healthcare provider.`
           },
           {
@@ -58,6 +60,15 @@ IMPORTANT: This is for medical professional assistance only. Always recommend co
     const data = await response.json();
     const analysis = data.choices[0].message.content;
     console.log('Diagnosis generated successfully');
+
+    if (/^\s*NOT_HEALTH_RELATED\s*$/i.test(analysis) || analysis.trim().startsWith('NOT_HEALTH_RELATED')) {
+      return new Response(JSON.stringify({
+        rejected: true,
+        message: /[\u0600-\u06FF]/.test(transcript)
+          ? 'معذرت، یہ گفتگو صحت سے متعلق نہیں لگتی۔ براہ کرم مریض کی علامات یا طبی مسئلے کے بارے میں بات کریں۔'
+          : "Sorry, this conversation doesn't appear to be health-related. Please describe the patient's symptoms or medical concern.",
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 });
+    }
 
     // Parse the analysis to extract structured data
     const confidenceMatch = analysis.match(/(\d+)%/);
